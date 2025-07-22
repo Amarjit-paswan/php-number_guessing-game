@@ -1,0 +1,117 @@
+<?php 
+
+//-----------------------
+// Intialize a Game Class
+//-----------------------
+
+class Game{
+
+    //Store json file
+    private $file = 'game_records.json';
+    
+    // Intailize array to store records
+    private $records = [];
+
+    // Constructor : store reocrds in json file into memory
+    public function __construct()
+    {
+        //Check if file exists
+        if(file_exists($this->file)){
+            $json = file_get_contents($this->file);
+            $this->records = json_decode($json, true);
+        }
+    }
+
+
+    //Generate number between 1 to 100 for guessing
+    public function generate_number(){
+      return rand(1,100);
+    }
+
+    // Show menu to user to choose difficulty level
+    public function showMenu(){
+        echo "\n Welcome to the Number Guessing Game!\n";
+        echo " I'm thinking of number between 1 and 100.\n";
+        echo " You have X chance to guess the correct number depending of difficulty level  you choose. \n";
+
+        echo "\n Please Select the difficulty level \n";
+        echo "1. Easy (10 chances) \n";
+        echo "2. Medium (5 chances) \n";
+        echo "3. Hard (3 chances) \n";
+
+        echo "\n Other options: \n";
+        echo "4. List high score \n";
+        echo "5. Exit \n";
+
+        echo "\n Enter Your Choice: ";
+    }
+
+    // Play Game function 
+    public function playGame($option, $number, $guess, $showHints){
+
+        // Check which difficulty level user have chosen
+        $chances = ($option == 1) ? 10 : (($option == 2) ? 5 : 3);
+
+        $lowRange = 1; // Minimum value
+        $highRange = 100; // Maximum value
+
+        $startTime = microtime(true); // Start Counting the time
+
+        $hintUsed = 0; // Check how many hint used
+        $hintGiven = []; // Store the hint
+
+        $totalAttempts = 0; // Count total attemps of game
+
+        // Run the loop untill chance has over
+        for($i = 0; $i < $chances; $i++){
+
+            // Guess matchs to the number
+            if($guess == $number){
+                $endTime = microtime(true); // Store the end time 
+                $totalTime = $endTime - $startTime; // Calculate the total time
+
+                $totalAttempts += $i; // Add the attempts
+
+                $highScore = $this->getHighScore($option); // Store high score 
+
+                // Check total attempts is over highest attemps
+                if($highScore == null || $totalAttempts < $highScore['attempts']){
+                    $this->updateHighScore($option, $totalAttempts, $totalTime);
+                }
+
+                echo "\n Congratulations! You guessed the correct number in ". ($i). "attempts. \n";
+                echo "It took you ". round($totalTime, 2). " seconds\n";
+                break;
+
+            }else if($guess > $number){ // Check if guess bigger than number
+                echo "\n Incorrect! The number is less than your guess $guess. Try again\n";
+                $highRange = $guess - 1; // Update the high range
+
+            }else{
+                echo "\n Incorrect! The number is greater than your guess $guess. Try gain. \n";
+                $lowRange = $guess + 1; // Update the low range
+            }
+
+            // Check if user want to see hint
+            if($showHints == 'y' || $showHints == 'Y' || $showHints = 'yes'){
+                $hintUsed++; // Increase the hint
+                // Store the hint
+                $hint = $this->provideHint($number, $guess, $hintUsed, $lowRange, $highRange, $hintGiven);
+                echo $hint; // Print the hint
+            }
+
+            echo "\n Enter Your guess: ";
+            $guess = (int) fgets(STDIN);
+        }
+
+        // Print alert message if chaces has over
+        if($i == $chances){
+            echo "\Sorry, you ran out of chances. The correct number was $number. \n";
+        }
+
+    }
+}
+
+
+
+?>
