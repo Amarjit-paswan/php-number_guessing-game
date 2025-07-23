@@ -180,7 +180,7 @@ class Game{
         file_put_contents($this->file, $json);
     }
 
-    // Update high score
+    // Update high_score
     public function updateHighScore($option, $attempts, $time){
         $difficuly = match($option){
             1 => 'easy',
@@ -241,7 +241,7 @@ class Game{
         echo str_repeat("=",30). "\n";
     }
 
-    
+
 
 }
 
