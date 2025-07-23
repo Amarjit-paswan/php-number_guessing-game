@@ -110,6 +110,139 @@ class Game{
         }
 
     }
+
+    //Provide a hint
+    public function provideHint($number,$guess,$hintUsed,$lowRange,$highRange,$hintGiven){
+
+        // If range hint hasn't been given
+        if(!in_array('range', $hintGiven)){
+            echo "Hint: The number is between $lowRange and $highRange.\n";
+            $hintGiven[] = 'range';
+        }
+        // Else if even/odd hint has not given
+        elseif(!in_array('parity',$hintGiven)){
+            if($number % 2 === 0){
+                echo "Hint: The number is even.\n";
+            }else{
+                echo "Hint: The number is odd.\n";
+            }
+            $hintGiven[] = 'parity';
+        }
+        // Else if close-range hint hasn't been given
+        elseif(!in_array('close',$hintGiven)){
+            if(abs($guess - $number) <= 5){
+                echo "Hint: You are very close!\n";
+            }else{
+                echo "Hint: You are far from the number. \n";
+            }
+
+            $hintGiven[] = 'close';
+        }else{
+            echo "No more hints avaiable. \n";
+        }
+        return $hintGiven;
+    }
+
+    // Get High Score of Game
+    public function getHighScore($option){
+
+        // Check Records is empty
+        if(empty($this->records)){
+            return null;
+        }
+
+        $bestScore = null;
+
+        //Check level you chosed
+        $difficuly = match ($option){
+            1 => 'easy',
+            2 => 'medium',
+            3 => 'hard',
+            default => null,
+        };
+
+        // Print records 
+        foreach($this->records as $record){
+            if($record['difficulty'] === $difficuly){
+                if($bestScore === null || $record['attempts'] < $bestScore['attempts']){
+                    $bestScore = $record;
+                }
+            }
+        }
+
+        // Print the best score
+        return $bestScore ?? null;
+    }
+
+    // Save the records into JSON
+    public function saveToJson($records){
+        $json = json_encode($records, JSON_PRETTY_PRINT);
+        file_put_contents($this->file, $json);
+    }
+
+    // Update high score
+    public function updateHighScore($option, $attempts, $time){
+        $difficuly = match($option){
+            1 => 'easy',
+            2 => 'medium',
+            3 => 'hard',
+            default => null,
+        };
+
+        $updated = false;
+
+        foreach($this->records as $key => $record){
+            if($record['difficulty'] === $difficuly){
+                if($attempts < $record['attempts']){
+                    $this->records[$key]['attempts'] = $attempts;
+                    $this->records[$key]['time'] = round($time,2);
+                    $updated = true;
+                }
+                break;
+            }
+        }
+
+        if(!$updated){
+            $this->records[] = [
+                'difficulty' => $difficuly,
+                'attempts' => $attempts,
+                'time' => round($time,2),
+            ];
+        }
+
+        // Save the updated value
+        $this->saveToJson($this->records);
+    }
+
+    // Show high score
+    public function showHighScore(){
+        if(empty($this->records)){
+            return "No high scores found. \n";
+        }
+
+        $scores = [
+            'Easy' => $this->getHighScore(1),
+            'Medium' => $this->getHighScore(2),
+            'Hard' => $this->getHighScore(3),
+        ];
+
+        echo str_repeat("=",30). "\n";
+        echo "      HIGH SCORES     \n";
+        echo str_repeat("=",30). "\n";
+
+        foreach($scores as $difficulty => $score){
+            if($score == null){
+                echo "$difficulty: No high score yet. \n";
+            }else{
+                echo "$difficulty: Attempts: {$score['attempts']} | Time: {$score['time']} seconds\n";
+            }
+        }
+
+        echo str_repeat("=",30). "\n";
+    }
+
+    
+
 }
 
 
