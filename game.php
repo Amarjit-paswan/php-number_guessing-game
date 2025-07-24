@@ -112,35 +112,7 @@ class Game{
     }
 
     //Provide a hint
-    public function provideHint($number,$guess,$hintUsed,$lowRange,$highRange,$hintGiven){
-
-        // If range hint hasn't been given
-        if(!in_array('range', $hintGiven)){
-            echo "Hint: The number is between $lowRange and $highRange.\n";
-            $hintGiven[] = 'range';
-        }
-        // Else if even/odd hint has not given
-        elseif(!in_array('parity',$hintGiven)){
-            if($number % 2 === 0){
-                echo "Hint: The number is even.\n";
-            }else{
-                echo "Hint: The number is odd.\n";
-            }
-            $hintGiven[] = 'parity';
-        }
-        // Else if close-range hint hasn't been given
-        elseif(!in_array('close',$hintGiven)){
-            if(abs($guess - $number) <= 5){
-                echo "Hint: You are very close!\n";
-            }else{
-                echo "Hint: You are far from the number. \n";
-            }
-
-            $hintGiven[] = 'close';
-        }else{
-            echo "No more hints avaiable. \n";
-        }
-        return $hintGiven;
+   public function provideHint($number, $guess, $hintsUsed, $lowRange, $highRange, &$hintsGiven){
     }
 
     // Get High Score of Game
