@@ -1,34 +1,28 @@
 <?php 
 
-//-----------------------
-// Intialize a Game Class
-//-----------------------
+//----------------------
+//Intailize a game class 
+//----------------------
 
 class Game{
 
-    //Store json file
+    // Store the file
     private $file = 'game_records.json';
-    
-    // Intailize array to store records
+
+    // Store the records
     private $records = [];
 
-    // Constructor : store reocrds in json file into memory
     public function __construct()
     {
-        //Check if file exists
+        // Check file exists
         if(file_exists($this->file)){
             $json = file_get_contents($this->file);
-            $this->records = json_decode($json, true);
+            $records = json_decode($json,true);
+
         }
     }
 
-
-    //Generate number between 1 to 100 for guessing
-    public function generate_number(){
-      return rand(1,100);
-    }
-
-    // Show menu to user to choose difficulty level
+    // Show the menu
     public function showMenu(){
         echo "\n Welcome to the Number Guessing Game!\n";
         echo " I'm thinking of number between 1 and 100.\n";
@@ -46,125 +40,160 @@ class Game{
         echo "\n Enter Your Choice: ";
     }
 
-    // Play Game function 
-    public function playGame($option, $number, $guess, $showHints){
+    // Generate the number
+    public function generate_number(){
+        $number = rand(1,100);
+        return $number;
+    }
 
-        // Check which difficulty level user have chosen
+    // Play the game
+    public function playGame($option,$number,$guess,$showHints){
+
+        // Check the difficulty level to find chances
         $chances = ($option == 1) ? 10 : (($option == 2) ? 5 : 3);
 
-        $lowRange = 1; // Minimum value
-        $highRange = 100; // Maximum value
+        $lowRanges = 1; // Mininum range
+        $highRanges = 100; // Maximum range
 
-        $startTime = microtime(true); // Start Counting the time
+        // Start the time
+        $startTime = microtime(true);
 
-        $hintUsed = 0; // Check how many hint used
-        $hintGiven = []; // Store the hint
+        $hintUsed = 0; // hint used
 
-        $totalAttempts = 0; // Count total attemps of game
+        $hintsGiven = []; // Hints given
 
-        // Run the loop untill chance has over
+        $totalAttempts = 0; // Count total attempts
+
+        // Run the loop untill the chance over
         for($i = 0; $i < $chances; $i++){
 
-            // Guess matchs to the number
+            // Guess matches to the number
             if($guess == $number){
-                $endTime = microtime(true); // Store the end time 
-                $totalTime = $endTime - $startTime; // Calculate the total time
 
+                $endTime = microtime(true); // End the time
+
+                $totalTime = $endTime - $startTime; // Total time
                 $totalAttempts += $i; // Add the attempts
 
-                $highScore = $this->getHighScore($option); // Store high score 
+                $highScores = $this->getHighScore($option); // Store high score
 
-                // Check total attempts is over highest attemps
-                if($highScore == null || $totalAttempts < $highScore['attempts']){
+                // Check total attemps is over highest attempts
+                if($highScores == null || $totalAttempts < $highScores['attempts']){
                     $this->updateHighScore($option, $totalAttempts, $totalTime);
                 }
 
-                echo "\n Congratulations! You guessed the correct number in ". ($i). "attempts. \n";
-                echo "It took you ". round($totalTime, 2). " seconds\n";
+                echo "\n Congrastulation! You guessed the correct number in ($i) attempts\n";
+                echo "\n It took around ". round($totalTime,2). " seconds";
                 break;
-
-            }else if($guess > $number){ // Check if guess bigger than number
-                echo "\n Incorrect! The number is less than your guess $guess. Try again\n";
-                $highRange = $guess - 1; // Update the high range
-
-            }else{
-                echo "\n Incorrect! The number is greater than your guess $guess. Try gain. \n";
-                $lowRange = $guess + 1; // Update the low range
+            }else if($guess > $number){ // Check if guess number is bigger than number
+                echo "Incorrect! The number is less than your $guess . Try again \n";
+                $highRanges = $guess - 1;
+            }else{ // Check if guess number is smaller than number
+                echo "Incorrect! The number is bigger than your $guess . Try again \n";
+                $lowRanges = $guess + 1;
             }
 
-            // Check if user want to see hint
-            if($showHints == 'y' || $showHints == 'Y' || $showHints = 'yes'){
-                $hintUsed++; // Increase the hint
-                // Store the hint
-                $hint = $this->provideHint($number, $guess, $hintUsed, $lowRange, $highRange, $hintGiven);
-                echo $hint; // Print the hint
+            // Check if user want to see the hint
+            if($showHints == 'y' || $showHints == 'Y' || $showHints == 'yes'){
+                $hintUsed++; // Increse the hint
+                // Store the unit
+                $hint = $this->provideHint($number,$guess,$hintUsed,$lowRanges,$highRanges,$hintsGiven);
+                echo $hint; // Print the hint 
             }
 
-            echo "\n Enter Your guess: ";
+            echo "\n Enter the guess: \n";
             $guess = (int) fgets(STDIN);
-        }
 
-        // Print alert message if chaces has over
-        if($i == $chances){
-            echo "\Sorry, you ran out of chances. The correct number was $number. \n";
+            // Print the alert message if chance has over
+            if($i == $chances){
+                echo "\n Sorry, you ran out of chances. The correct number was $number. \n";
+            }
         }
+    }
+
+    // Provide the hint
+    public function provideHint($number, $guess, $hintUsed, $lowRanges, $highRanges, &$hintsGiven){
+      // If range hint hasn't been given
+      if(!in_array('range',$hintsGiven)){
+        echo "Hint: The number is between $lowRanges and $highRanges. \n";
+        $hintsGiven[] = 'range';
+      }
+      // Else if even/odd hint hasn't been given
+      elseif (!in_array('parity',$hintsGiven)){
+            if($number % 2 === 0){
+                echo "Hint: The number is even. \n";
+            }else{
+                echo "Hint: The number is odd. \n";
+            }
+            $hintsGiven[] = 'parity';
+      }
+      //Else if close-range hint hasn't been given
+      elseif(!in_array('close',$hintsGiven)){
+        if(abs($guess - $number) <= 5){
+            echo "Hint: You are very close!\n";
+        }else{
+            echo "Hint: You are far from the number. \n";
+        }
+        $hintsGiven[] = 'close';
+      }else{
+        echo "No more hints available. \n";
+      }
+
+      return $hintsGiven;
+
 
     }
 
-    //Provide a hint
-   public function provideHint($number, $guess, $hintsUsed, $lowRange, $highRange, &$hintsGiven){
-    }
-
-    // Get High Score of Game
+    // Get the highest score
     public function getHighScore($option){
 
-        // Check Records is empty
+        // Check records empty
         if(empty($this->records)){
             return null;
         }
 
         $bestScore = null;
 
-        //Check level you chosed
-        $difficuly = match ($option){
-            1 => 'easy',
-            2 => 'medium',
-            3 => 'hard',
-            default => null,
+        // Check level you used
+        $difficulty = match($option){
+            1 => 'Easy',
+            2 => 'Medium',
+            3 => 'Hard',
+            default => null
         };
 
-        // Print records 
+        // Print records
         foreach($this->records as $record){
-            if($record['difficulty'] === $difficuly){
-                if($bestScore === null || $record['attempts'] < $bestScore['attempts']){
+            if($record['difficulty'] === $difficulty){
+                if($bestScore == null || $record['attempts'] < $bestScore['attempts']){
                     $bestScore = $record;
                 }
             }
         }
 
-        // Print the best score
+        // Print the best Score
         return $bestScore ?? null;
     }
 
-    // Save the records into JSON
-    public function saveToJson($records){
-        $json = json_encode($records, JSON_PRETTY_PRINT);
-        file_put_contents($this->file, $json);
+    // Save the records into json
+    public function saveTojson($record){
+        $json = json_decode($record,JSON_PRETTY_PRINT);
+        file_put_contents($this->file,$json);
     }
 
-    // Update high_score
+    // Update high score
     public function updateHighScore($option, $attempts, $time){
-        $difficuly = match($option){
+        $difficulty = match($option){
             1 => 'easy',
             2 => 'medium',
             3 => 'hard',
-            default => null,
+            default => null
         };
 
         $updated = false;
 
         foreach($this->records as $key => $record){
-            if($record['difficulty'] === $difficuly){
+            if($record['difficulty'] == $difficulty){
                 if($attempts < $record['attempts']){
                     $this->records[$key]['attempts'] = $attempts;
                     $this->records[$key]['time'] = round($time,2);
@@ -176,9 +205,9 @@ class Game{
 
         if(!$updated){
             $this->records[] = [
-                'difficulty' => $difficuly,
+                'difficulty' => $difficulty,
                 'attempts' => $attempts,
-                'time' => round($time,2),
+                'time' => round($time,2)
             ];
         }
 
@@ -186,16 +215,16 @@ class Game{
         $this->saveToJson($this->records);
     }
 
-    // Show high score
+    // Show high Score
     public function showHighScore(){
         if(empty($this->records)){
             return "No high scores found. \n";
         }
 
         $scores = [
-            'Easy' => $this->getHighScore(1),
-            'Medium' => $this->getHighScore(2),
-            'Hard' => $this->getHighScore(3),
+            'easy' => $this->getHighScore(1),
+            'medium' => $this->getHighScore(2),
+            'hard' => $this->getHighScore(3),
         ];
 
         echo str_repeat("=",30). "\n";
@@ -204,18 +233,16 @@ class Game{
 
         foreach($scores as $difficulty => $score){
             if($score == null){
-                echo "$difficulty: No high score yet. \n";
+                echo "$difficulty: No high score yet.   \n";
             }else{
-                echo "$difficulty: Attempts: {$score['attempts']} | Time: {$score['time']} seconds\n";
+                echo "$difficulty: Attempts: {$score['attempts']}   | Time: {$score['time']} seconds\n";
             }
         }
 
         echo str_repeat("=",30). "\n";
     }
-
-
-
 }
+
 
 
 
