@@ -10,3 +10,6 @@ This is simple PHP project where users try to guess the number randomly chosen b
 - View high scores
 - Clean command-line interface
 - Option to play again after finishing a game
+
+**Referenece by**
+https://roadmap.sh/projects/number-guessing-game
